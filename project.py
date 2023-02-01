@@ -32,6 +32,9 @@ Implementation Notes
 import os
 import logging
 import requests
+import locale
+import calendar
+import getpass
 from bs4 import BeautifulSoup
 from pyshadow.main import Shadow
 from selenium import webdriver
@@ -40,91 +43,95 @@ from selenium.webdriver.common.keys import Keys
 import chromedriver_autoinstaller
 from selenium.webdriver.chrome.service import Service
 
+import selenium_tool
+
+
+
+def set_up_logging(debug_mode) -> None:
+    """ Function for setting up the logging """
+    # https://docs.python.org/3/library/logging.html
+    # set up logging: set level to DEBUG to see all messages
+    # set up logging: set level to WARNING to only see warnings and errors
+    if debug_mode:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug("Logging is set to DEBUG")
+    logging.basicConfig(level=logging.WARNING)
+
 def import_webdriver() -> None:
     """ Function for importing the webdriver"""
     # https://pypi.org/project/chromedriver-autoinstaller/
+    # Check if the current version of chromedriver exists
+    # and if it doesn't exist, download it automatically,
+    # then add chromedriver to path
+    try:
+        chromedriver_autoinstaller.install()
 
-    chromedriver_autoinstaller.install()  # Check if the current version of chromedriver exists
-                                      # and if it doesn't exist, download it automatically,
-                                      # then add chromedriver to path
+    except Exception as err:
+        logging.debug("Error: %s" ,err)
 
-    driver = webdriver.Chrome()
-    driver.get("http://www.python.org")
-    assert "Python" in driver.title
+def setup_locale(local_value) -> None:
+    """ Function for setting up the locale """
+    # Set the locale
+    # for your location -> browser language
+    # check locale -a for available locales
+    # German = de_DE.utf8
+    try:
+        locale.setlocale(locale.LC_ALL, local_value)
+        #locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+    except Exception as err:
+        logging.debug("Error: %s" ,err)
 
-def scrapy_website() -> str:
-    """ Function for requesting the website using the scrapy module """
+def get_credentials() -> tuple:
+    """ Function for getting the credentials """
+    # Get the credentials from the user
+    # https://martinheinz.dev/blog/59
+    """
+    try:
+        #username = getpass.getpass(prompt="Enter your username: ")
+        username = input("Enter your username or email: ")
+    except Exception as err:
+        logging.debug("Error: %s" ,err)
+    try :
+        password = getpass.getpass(prompt="Enter your password: ")
+    except Exception as err:
+        logging.debug("Error: %s" ,err)
+    """
+    #print(username, password)
+    username = "champion-x@web.de"
+    password = "6!=145_crimpd"
 
-    BASE_URL = "https://www.londonstockexchange.com/news-article/market-news/dividend-declaration/15174450"
-    response = requests.get(BASE_URL)
-    soup = BeautifulSoup(response.text, "html.parser")
-    if soup.find("span", class_="icon2-endurance type-icon") is not None:
-        print ("Login successful")
-    else:
-        print("Login failed")
-
-
-def selenium_website() -> str:
-    """ Function for requesting the website using the selenium module """
-
-    #BASE_URL = "https://www.londonstockexchange.com/news-article/market-news/dividend-declaration/15174450"
-    BASE_URL = "https://my.crimpd.com/workouts"
-    chromedriver_autoinstaller.install()
-    driver = webdriver.Chrome()
-    shadow = Shadow(driver)
-    z = shadow.chrome_driver.get(BASE_URL)
-    #element = shadow.find_element(By.CLASS_NAME, 'md ion-page hydrated')
-    element = shadow.find_elements('ion-router-outlet')
-    print(element)
-    #element1 = element.find_elements(By.TAG_NAME, 'span')
- 
-
-def requests_website_find() -> str:
-    """ Function for requesting the website using the requests module """
-
-    session = requests.Session()
-    
-
-    response = session.get(BASE_URL)
-    soup = BeautifulSoup(response.text, "html.parser")
-    #if soup.find("span", class_="icon2-endurance type-icon") is not None:
-    if soup.find(class_="category-header type-icon") is not None:
-        print ("Login successful")
-    else:
-        print("Login failed")
-
-
-def requests_website() -> str:
-    """ Function for requesting the website using the requests module """
-
-    USERNAME = "champion-x@web.de"
-    PASSWORD = "6!=145_crimpd"
-    BASE_URL = "https://my.crimpd.com"
-
-    session = requests.Session()
-    
-    #data = {"account": USERNAME, "password": PASSWORD, "remember": "off"}
-    data = {"email": USERNAME, "password": PASSWORD}
-
-    response = session.post(BASE_URL + "/login", data=data)
-    
-    soup = BeautifulSoup(response.text, "html.parser")
-    if soup.find("Favorite Workouts") is not None:
-        print ("Login successful")
-    else:
-        print("Login failed")
-
+    return username, password
 
 def main() -> None:
     """ Main function """
-    print("Hello World")
-    #print(requests_website())
-    #print(requests_website_find())
-    print(selenium_website())
-    #print(import_webdriver())
+
+    # Constants for Settings:
+    # Set Value to True to show debugging messages
+    DEBUG_MODE = True
+    # Set Value for your location -> browser language
+    LOCALE_VALUE = 'de_DE.utf8'
+    # Set URL for the website
+    URL = "https://my.crimpd.com/login"
 
 
-
+    logging.warning("Starting Initial Setup...")
+    set_up_logging(DEBUG_MODE)
+    import_webdriver()
+    # for your location -> browser language
+    # check locale -a for available locales
+    setup_locale(LOCALE_VALUE)
+    logging.debug("Locale is set to: %s", locale.getlocale())
+    # Get the credentials from the user
+    username, password = get_credentials()
+    logging.debug(username, password)
+    # Start the selenium tool
+    service, driver = selenium_tool.create_service()
+    selenium_tool.set_url(service, driver, URL)
+    dict_workouts, workout_month = selenium_tool.scraping_fn(service, driver, username, password)
+    # create the csv file
+    print(dict_workouts)
+    print(workout_month)
+    
 if __name__ == "__main__":
     main()
 

@@ -9,7 +9,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException
 
-
+# for German locale
+# check locale -a for available locales
+locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
 USR_NAME = "champion-x@web.de"
 USR_PW = "6!=145_crimpd"
@@ -91,29 +93,67 @@ if calendar_month == current_month:
     print("Month is the same")
     driver.find_element(By.CSS_SELECTOR, ".navigateMonthsBar > ion-button:nth-child(1)").click()
     print("clicked on last month")
-
+    
 elements = driver.find_element(By.CSS_SELECTOR, ".monthName")
 print(elements.text)
 
+# Get the days
+# dayNumber
 
 elements = driver.find_elements(By.CLASS_NAME, "day-inner")
+#elements = driver.find_elements(By.CSS_SELECTOR, "div.week:nth-child(3) > div:nth-child(1)")
+#div.week:nth-child(3) > div:nth-child(2)
+#div.week:nth-child(3) > div:nth-child(6)
+#elements = driver.find_elements(By.CLASS_NAME, "dayWrap ng-star-inserted")
 # css selctor each tile = div.week:nth-child(3) > div:nth-child(1)
 # or class name = dayWrap ng-star-inserted
 # tile class = day-inner
 # day = dayNumber
 # day of this month = day passed
 # weekend day of this month = day weekendDay passed
-
-# prints day and workout if available
 for element in elements:
     element1 = element.find_element(By.CLASS_NAME, "dayNumber")
     print(element1.text)
     try:
         element2 = element.find_elements(By.TAG_NAME, "span")
-        for element2_2 in element2:
-            print(element2_2.text)
+        for element3 in element2:
+            print(element3.text)
     except NoSuchElementException:
-        print("Error")
+        print("No workout for this day")
+# Get the workouts for each day
+    #for element2 in elements2:
+     #   print(element2.text)
+
+"""
+for element in elements:
+    # check if the day is in the current month
+    try:
+        element1 = element.find_element(By.CLASS_NAME, "day differentMonth passed")
+        print("Day is not in the current month")
+    except NoSuchElementException:
+        print("Day is in the current month")
+        # check if the day is a weekend day
+    try:
+        element1 = element.find_element(By.CLASS_NAME, "day passed]")
+        print("Day is from this month")
+            #print(element1.text)
+    except NoSuchElementException:
+        print("Day Error")
+    try:
+        element1 = element.find_element(By.CLASS_NAME, "day weekendDay passed")
+        print("Day is a weekend day")
+    except NoSuchElementException:
+        print("Day is not a weekend day")
+
+    element1 = element.find_element(By.CLASS_NAME, "dayNumber")
+    print(element1.text)
+    try:
+        element2 = element.find_elements(By.TAG_NAME, "span")
+        for element3 in element2:
+            print(element3.text)
+    except NoSuchElementException:
+        print("No workout for this day")
+"""
 
 print("done")
 # Close the WebDriver instance
