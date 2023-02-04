@@ -17,7 +17,10 @@ Implementation Notes
 
 **Software and Dependencies:**
 
-* Linux and Python 3.7.3 or Higher
+* Python 3.10.6 or higher
+* Google Chrome Browser Version 109.0.5414.119 or higher
+* chromedriver-autoinstaller>=0.4.0
+* selenium>=4.8.0
 
 """
 import time
