@@ -144,6 +144,7 @@ def main() -> None:
     username, password = get_credentials()
     logging.debug(username, password)
     # Start the selenium tool
+    logging.warning("Starting the Browser to scrape the data.")
     service, driver = selenium_tool.create_service()
     selenium_tool.set_url(service, driver, url)
     dict_workouts, workout_month = selenium_tool.scraping_fn(service, driver, username, password, export_date)
