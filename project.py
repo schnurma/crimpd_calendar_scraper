@@ -36,26 +36,25 @@ Implementation Notes
 
 """
 # Imports
-import re
 import logging
 import locale
 import getpass
 import csv
 import chromedriver_autoinstaller
 import selenium_tool
+from datetime import datetime
 
-
-def set_up_logging(debug_mode) -> None:
+def set_up_logging(debug_mode: bool) -> None:
     """ Function for setting up the logging """
     # https://docs.python.org/3/library/logging.html
     # set up logging: set level to DEBUG to see all messages
     # set up logging: set level to WARNING to only see warnings and errors
     if debug_mode:
-        logging.debug("Logging is set to DEBUG")
         logging.basicConfig(level=logging.DEBUG)
+        logging.debug("Logging is set to DEBUG")
     else:
-        logging.debug("Logging is set to WARNING")
         logging.basicConfig(level=logging.WARNING)
+        logging.debug("Logging is set to WARNING")
 
 def import_webdriver() -> None:
     """ Function for importing the chrome webdriver"""
@@ -68,7 +67,7 @@ def import_webdriver() -> None:
     except Exception as err:
         logging.debug("Error: %s" ,err)
 
-def setup_locale(local_value) -> None:
+def setup_locale(local_value: str) -> None:
     """ Function for setting up the locale """
     # Set the locale
     # for your location -> browser language
@@ -78,34 +77,28 @@ def setup_locale(local_value) -> None:
         locale.setlocale(locale.LC_ALL, local_value)
         #locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
     except Exception as err:
-        logging.debug("Error: %s" ,err)
+        logging.exception("Error: %s" ,err)
 
 def get_credentials() -> tuple:
     """ Function for getting the credentials """
     # Get the credentials from the user
     # https://martinheinz.dev/blog/59
-    try:
-        username = input("Enter your username or email: ")
-    except Exception as err:
-        logging.debug("Error: %s" ,err)
-    try :
-        password = getpass.getpass(prompt="Enter your password: ")
-    except Exception as err:
-        logging.debug("Error: %s" ,err)
+    username = input("Enter your username or email: ")
+    password = getpass.getpass(prompt="Enter your password: ")
     return username, password
 
-def get_month_year_export() -> tuple:
+def get_month_year_export(input_func=input) -> str:
     """ Ask the user for the month and year to export """
     while True:
         try:
-            export_date = input("Enter month and year to export (e.g. mm-yyyy): ")
-            if re.match(r"^(0[1-9]|1[012])-(20[0-9]{2})$", export_date):
-                return export_date
-        except Exception as err:
-            logging.debug("Error: %s" ,err)
+            date_input = input_func("Enter month and year to export (mm-yyyy): ")
+            date = datetime.strptime(date_input, "%m-%Y")
+            date_mm_yyyy = date.strftime("%m-%Y")
+            return str(date_mm_yyyy)
+        except ValueError:
+            print("Incorrect date format. Please try again.")
 
-
-def create_csv_file(dict_workouts, workout_month) -> None:
+def create_csv_file(dict_workouts: dict, workout_month: str) -> None:
     """ Function for creating the csv file """
     # only write days with workouts to the csv file
     # create the csv file
@@ -118,7 +111,7 @@ def create_csv_file(dict_workouts, workout_month) -> None:
                 writer.writerow([key, value])
             else:
                 logging.debug("No workout for day %s", key)
-    return logging.info("CSV File created %s", csv_file)
+    return csv_file
 
 def main() -> None:
     """ Main function """
@@ -138,7 +131,7 @@ def main() -> None:
     setup_locale(local_value)
     logging.debug("Locale is set to: %s", locale.getlocale())
     # Get the month and year to export
-    export_date  = get_month_year_export()
+    export_date  = get_month_year_export(input)
     logging.debug(export_date)
     # Get the credentials from the user
     username, password = get_credentials()
@@ -150,7 +143,8 @@ def main() -> None:
     dict_workouts, workout_month = selenium_tool.scraping_fn(service, driver, username, password, export_date)
 
     # create the csv file
-    create_csv_file(dict_workouts, workout_month)
+    csv_file = create_csv_file(dict_workouts, workout_month)
+    logging.warning("CSV File created %s", csv_file)
 
 if __name__ == "__main__":
     main()

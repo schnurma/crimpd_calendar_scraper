@@ -38,20 +38,56 @@ Implementation Notes
 
 """
 # Imports
+import getpass
+import logging
+import re
 import pytest
-from project import get_credentials, get_month_year_export
+from pytest import MonkeyPatch
+from project import get_credentials, get_month_year_export, create_csv_file
 
-"""
-def test_credentials():
-    ''' check if credentials are returned '''
-    username = "JohnDoe@harvard.edu"
-    password = "123456"
-    assert get_credentials() == (username, password)
-"""
+# https://www.youtube.com/watch?v=ULxMQ57engo&t=1258s
 
-def test_month_year_export():
-    """ check if month and year are returned """
-    assert get_month_year_export() == ()
-    
-    
-        
+def test_get_credentials(monkeypatch: MonkeyPatch):
+    """ Test that the function returns a tuple """
+    def mock_input(prompt):
+        return "test_username"
+    def mock_getpass(prompt):
+        return "test_password"
+
+    monkeypatch.setattr('builtins.input', mock_input)
+    monkeypatch.setattr(getpass, 'getpass', mock_getpass)
+
+    result = get_credentials()
+
+    assert isinstance(result, tuple)
+    assert result[0] == "test_username"
+    assert result[1] == "test_password"
+
+class TestGetMonthYearExport():
+    """ check if the correct month and year is returned """
+
+    def test_correct_values(self, monkeypatch: MonkeyPatch) -> None:
+        """ test correct values"""
+        inputs = ["12-2099"]
+        monkeypatch.setattr("builtins.input", lambda _: inputs.pop(0))
+        assert get_month_year_export(input) == ("12-2099")
+
+    def test_error_handling(self, monkeypatch: MonkeyPatch) -> None:
+        """ test error handling if not a valid month/year is entered"""
+        with pytest.raises(Exception) as err:
+            inputs = ["13-2099"]
+            monkeypatch.setattr("builtins.input", lambda _: inputs.pop(0))
+            get_month_year_export(input)
+        with pytest.raises(Exception) as err:
+            inputs = ["22-2099"]
+            monkeypatch.setattr("builtins.input", lambda _: inputs.pop(0))
+            get_month_year_export(input)
+
+
+def test_create_csv_file() -> None:
+    """ check if csv file is created with the correct name """
+    dict_workouts = { "5" : "Test Workout", "6" : "Test Workout 2" }
+    workout_month = "January"
+    assert create_csv_file(dict_workouts, workout_month) == ("workout_export_January.csv")
+    assert create_csv_file(dict_workouts, workout_month) != ("workout_export_February.csv")
+
