@@ -75,7 +75,7 @@ Adafruit-Sensor-Integration-Tool
 ||Topic|
 |-|-|
 |1|CS50P: [https://cs50.harvard.edu/python/2022/project/](https://cs50.harvard.edu/python/2022/project/)
-|2|Final Project Presentation: [temp](temp)
+|2|Final Project Presentation: [https://www.youtube.com/watch?v=SxEeD9mizqo](https://www.youtube.com/watch?v=SxEeD9mizqo)
 
 ## **License and Legal Information**
 
