@@ -60,7 +60,7 @@ In the main function the logging.debug outputs can be enabled with settings the 
 ```
 ## **Filestructure**
 
-Adafruit-Sensor-Integration-Tool
+crimpd-calendar-scraper
 ```
 ├─ LICENSE.md
 ├─ README.md
